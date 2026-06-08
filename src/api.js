@@ -1,5 +1,3 @@
-import './style.css'
-
 // get all forces
 // getData('https://data.police.uk/api/forces')
 
@@ -159,7 +157,6 @@ const grid = generate_grid(
     step
 )
 
-console.log(grid)
-
-const grid_data = await scan_grid(grid,step)
-console.log(grid_data)
+// console.log(grid)
+// const grid_data = await scan_grid(grid,step)
+// console.log(grid_data)
