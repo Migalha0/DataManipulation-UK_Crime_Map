@@ -1,5 +1,6 @@
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet';
+import {load_data, update_lsoa} from './data_reader'
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //             MAP SETUP
@@ -9,12 +10,13 @@ const tilemap_esri       = 'https://server.arcgisonline.com/ArcGIS/rest/services
 
 const map = L.map('map',
     {
+        renderer: L.canvas(),
         maxBounds: [
             [56.3, -6.0],
             [49.3, 2.0]
         ],
         maxBoundsViscosity: 0.8,
-        minZoom:6,
+        minZoom:7,
         maxZoom:12,
     }
 ).setView([53.5,-2.0],7)
@@ -24,48 +26,35 @@ L.tileLayer(tilemap_esri).addTo(map);
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //             POLYGONS
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-const circle = L.circle(
-    [53.5,-2.0],
+
+const data = await load_data();
+
+const updated_data = update_lsoa(data.geometry_json,data.population_json);
+
+L.geoJSON(
+    updated_data,
     {
-        color: 'rgb(7, 20, 78)',
-        opacity:0.4,
-        fillColor: 'rgb(35, 56, 148)',
-        fillOpacity: 0.4,
-        radius:40000
+        style: {
+            color: '#0cd8d8',
+            weight: 0.3
+        }
     }
 ).addTo(map)
 
-const poly_1 = L.polygon(
-    [
-        [50.5,-4.0],
-        [55.5,-4.0],
-        [55.5,-2.0],
-        [50.5,-2.0],
-    ],
-    {
-        color: 'rgb(7, 20, 78)',
-        opacity:0.4,
-        fillColor: 'rgb(35, 56, 148)',
-        fillOpacity: 0.4,
-    }
-).addTo(map)
+console.log(updated_data);
 
-const poly_2 = L.polygon(
-    [
-        [50.5,-2.0],
-        [55.5,-2.0],
-        [55.5,-0.0],
-        [50.5,-0.0],
-    ],
-    {
-        color: 'rgb(67, 78, 7)',
-        opacity:0.4,
-        fillColor: 'rgb(193, 206, 21)',
-        fillOpacity: 0.4,
-    }
-).addTo(map)
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//             ONCLICK
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 function onMapClick(e){
-    alert('you clicked the map at' + e.latlng)
+    const marker = L.marker(e.latlng).addTo(map);
+
+    marker
+        .bindPopup(`${e.latlng}`)
+        .openPopup();
+
+    marker.on('click', () => marker.remove())
 }
-map.on('click',onMapClick)
+
+map.on('click', onMapClick)
