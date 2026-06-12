@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Files
+/data_processing/data_raw/crime/*
+!/data_processing/data_raw/crime/.gitkeep
