@@ -10,7 +10,6 @@ export async function load_data() {
 }
 
 export function update_lsoa(geometry_json, population_json) {
-
     // turn the population census array into a dictionary
     const area_lookup = {};
     for (const area of population_json) {
@@ -29,7 +28,6 @@ export function update_lsoa(geometry_json, population_json) {
         // adding to the geoJSON data from the population census
         feature.properties.population = area_population;
         feature.properties.district   = area_district;
-
     }
 
     return geometry_json;

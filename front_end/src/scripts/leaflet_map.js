@@ -1,5 +1,6 @@
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet';
+import * as turf from '@turf/turf'
 import {load_data, update_lsoa} from './data_reader'
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -31,15 +32,35 @@ const data = await load_data();
 
 const updated_data = update_lsoa(data.geometry_json,data.population_json);
 
-L.geoJSON(
-    updated_data,
-    {
-        style: {
-            color: '#0cd8d8',
-            weight: 0.3
-        }
+// normalizing population to better see population distribution over land
+const populations = updated_data.features.map(
+    feature => feature.properties.population
+);
+
+const min_population = Math.min(...populations);
+const max_population = Math.max(...populations);
+
+// styling color according to pop count
+L.geoJSON(updated_data, {
+    style: feature => {
+
+        const population = feature.properties.population;
+
+        const normalized =
+            Math.sqrt(
+                (population - min_population) /
+                (max_population - min_population)
+            );
+
+        return {
+            
+            color: '#000000',
+            weight: 0.4,
+            fillColor:'#d80c0c',
+            fillOpacity: normalized
+        };
     }
-).addTo(map)
+}).addTo(map);
 
 console.log(updated_data);
 
@@ -48,10 +69,22 @@ console.log(updated_data);
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 function onMapClick(e){
+    // get point
+    // search polygon which had point inside
+    const point = turf.point([e.latlng.lng,e.latlng.lat])    
+    let polygon_data = null
+    
+    for (const feature of updated_data.features){
+        if(turf.booleanPointInPolygon(point,feature)){
+            polygon_data = feature.properties;
+            break;
+        }
+    }
+    
+    // print info
     const marker = L.marker(e.latlng).addTo(map);
-
     marker
-        .bindPopup(`${e.latlng}`)
+        .bindPopup(`${e.latlng} <br> ${polygon_data.district} ${polygon_data.population}`)
         .openPopup();
 
     marker.on('click', () => marker.remove())
