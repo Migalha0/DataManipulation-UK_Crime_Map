@@ -1,7 +1,7 @@
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet';
 import * as turf from '@turf/turf'
-import {load_data, update_lsoa} from './data_reader'
+import {load_data} from './data_reader'
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //             MAP SETUP
@@ -30,10 +30,8 @@ L.tileLayer(tilemap_esri).addTo(map);
 
 const data = await load_data();
 
-const updated_data = update_lsoa(data.geometry_json,data.population_json);
-
 // normalizing population to better see population distribution over land
-const populations = updated_data.features.map(
+const populations = data.features.map(
     feature => feature.properties.population
 );
 
@@ -41,12 +39,13 @@ const min_population = Math.min(...populations);
 const max_population = Math.max(...populations);
 
 // styling color according to pop count
-L.geoJSON(updated_data, {
+L.geoJSON(data, {
     style: feature => {
 
+        // get population normalize and color accordingly
         const population = feature.properties.population;
 
-        const normalized =
+        const population_color_normalized =
             Math.sqrt(
                 (population - min_population) /
                 (max_population - min_population)
@@ -55,14 +54,12 @@ L.geoJSON(updated_data, {
         return {
             
             color: '#000000',
-            weight: 0.4,
+            weight: 0.3,
             fillColor:'#d80c0c',
-            fillOpacity: normalized
+            fillOpacity: population_color_normalized
         };
     }
 }).addTo(map);
-
-console.log(updated_data);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //             ONCLICK
@@ -74,7 +71,7 @@ function onMapClick(e){
     const point = turf.point([e.latlng.lng,e.latlng.lat])    
     let polygon_data = null
     
-    for (const feature of updated_data.features){
+    for (const feature of data.features){
         if(turf.booleanPointInPolygon(point,feature)){
             polygon_data = feature.properties;
             break;

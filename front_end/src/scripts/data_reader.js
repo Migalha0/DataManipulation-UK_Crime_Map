@@ -1,16 +1,59 @@
+const crime_data_list = [
+    'data_processing/data_raw/crime/2023-05/2023-05-avon-and-somerset-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-bedfordshire-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-btp-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-cambridgeshire-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-cheshire-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-city-of-london-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-cleveland-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-cumbria-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-derbyshire-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-devon-and-cornwall-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-dorset-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-durham-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-dyfed-powys-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-essex-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-gloucestershire-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-gwent-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-hampshire-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-hertfordshire-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-humberside-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-kent-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-lancashire-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-leicestershire-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-lincolnshire-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-merseyside-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-metropolitan-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-norfolk-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-north-wales-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-north-yorkshire-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-northamptonshire-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-northern-ireland-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-northumbria-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-nottinghamshire-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-south-wales-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-south-yorkshire-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-staffordshire-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-suffolk-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-surrey-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-sussex-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-thames-valley-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-warwickshire-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-west-mercia-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-west-midlands-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-west-yorkshire-street.csv',
+    'data_processing/data_raw/crime/2023-05/2023-05-wiltshire-street.csv'
+]
+
 export async function load_data() {
-    // we need to import assynchronously because these files are huger, otherwise it will hang up the UI rendering
+    // import geometry and population
     const geometry_module   = await import('../data/LSOA_2021_geometry_small.json');
     const population_module = await import('../data/LSOA_2021_population.json');
 
-    return {
-        geometry_json: geometry_module.default,
-        population_json: population_module.default
-    }
-}
+    const geometry_json   = geometry_module.default
+    const population_json = population_module.default
 
-export function update_lsoa(geometry_json, population_json) {
-    // turn the population census array into a dictionary
+    // turn the population data into a dictionary
     const area_lookup = {};
     for (const area of population_json) {
         area_lookup[area.LSOA_2021_Code] = area;
@@ -30,5 +73,5 @@ export function update_lsoa(geometry_json, population_json) {
         feature.properties.district   = area_district;
     }
 
-    return geometry_json;
+    return geometry_json
 }
