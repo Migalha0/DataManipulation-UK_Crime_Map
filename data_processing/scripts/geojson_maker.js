@@ -63,11 +63,18 @@ for(const file of files){
 
 for(const feature of geometry.features){
     const lsoa_code = feature.properties.LSOA21CD;
-    feature.properties.Population = lsoa_population_dictionary[lsoa_code];
+    feature.properties.p = lsoa_population_dictionary[lsoa_code];
 
     // TODO: turn crime count per time basis
-    feature.properties.Crime_count = lsoa_crime_dictionary[lsoa_code];
+    feature.properties.c = lsoa_crime_dictionary[lsoa_code];
     // console.log(feature.properties)
+
+    delete feature.properties.LSOA21NMW
+    delete feature.properties.BNG_E
+    delete feature.properties.BNG_N
+    delete feature.properties.LAT
+    delete feature.properties.LONG
+    delete feature.properties.GlobalID
 }
 
 //#endregion

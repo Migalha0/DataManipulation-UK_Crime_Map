@@ -34,7 +34,7 @@ L.tileLayer(tilemap_esri).addTo(map);
 //     feature => feature.properties.Population
 // );
 const crimes = geojson_data.features.map(
-    feature => feature.properties.Crime_count ?? 0
+    feature => feature.properties.c ?? 0
 );
 
 // const min_population = Math.min(...populations);
@@ -54,7 +54,7 @@ L.geoJSON(geojson_data, {
         //         (max_population - min_population)
         //     );
 
-        const crime = feature.properties.Crime_count ?? 0;
+        const crime = feature.properties.c ?? 0;
 
         const crime_color_normalized = Math.sqrt(
             (crime)/(max_crime)
@@ -93,7 +93,7 @@ function onMapClick(e){
     
     // print info
     const marker = L.marker(e.latlng).addTo(map);
-    marker.bindPopup(`${e.latlng} <br> ${polygon_data.LSOA21NM} <br> population: ${polygon_data.Population}<br>crime: ${polygon_data.Crime_count}`).openPopup();
+    marker.bindPopup(`${e.latlng} <br> ${polygon_data.LSOA21NM} <br> population: ${polygon_data.p}<br>crime: ${polygon_data.c}`).openPopup();
 
     marker.on('click', () => marker.remove())
 }
