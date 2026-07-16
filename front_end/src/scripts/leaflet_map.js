@@ -1,13 +1,15 @@
-import 'leaflet/dist/leaflet.css'
+import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import * as turf from '@turf/turf'
-import geojson_data from '../data/LSOA_2021_processed.json'
+import * as turf from '@turf/turf';
+import geojson from '../data/geometry.json';
+
+import { get_selected_month } from '../states/month_state';
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //             MAP SETUP
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-const tilemap_openstreet = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-const tilemap_esri       = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+const tilemap_openstreet = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+const tilemap_esri       = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
 
 const map = L.map('map',
     {
@@ -20,54 +22,62 @@ const map = L.map('map',
         minZoom:7,
         maxZoom:12,
     }
-).setView([53.5,-2.0],7)
+).setView([53.5,-2.0],7);
 
 L.tileLayer(tilemap_esri).addTo(map);
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~    
+//             MONTH SELECTION
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+let current_month = get_selected_month();
+
+async function load_current_month(){
+
+    const response = await fetch(`/data/crime/${current_month}.json`);
+    console.log('selected month:', current_month);
+    return await response.json();
+}
+
+let crime_data = await load_current_month();
+
+document.addEventListener("monthChange", async event =>{
+
+    current_month = get_selected_month();
+
+    crime_data = await load_current_month();
+
+    geojson_layer.setStyle(polygon_style);
+
+});
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //             POLYGONS
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
-// normalizing population to better see population distribution over land
-// const populations = geojson_data.features.map(
-//     feature => feature.properties.Population
-// );
-const crimes = geojson_data.features.map(
-    feature => feature.properties.c ?? 0
-);
-
-// const min_population = Math.min(...populations);
-// const max_population = Math.max(...populations);
-const max_crime = Math.max(...crimes);
-
 // styling color according to pop count
-L.geoJSON(geojson_data, {
-    style: feature => {
 
-        // get population normalize and color accordingly
-        // const population = feature.properties.Population;
+function polygon_style(feature){
+        const lsoa = feature.lsoa;
 
-        // const population_color_normalized =
-        //     Math.sqrt(
-        //         (population - min_population) /
-        //         (max_population - min_population)
-        //     );
+        const crimes = crime_data.lsoa[lsoa] ?? {};
 
-        const crime = feature.properties.c ?? 0;
+        let total = 0;
 
-        const crime_color_normalized = Math.sqrt(
-            (crime)/(max_crime)
-        );
+        for(const count of Object.values(crimes)){
+            total += count;
+        }
 
-        return {
-            
+        return {            
             color: '#000000',
             weight: 0.3,
-            fillColor:'#d80c0c',
-            fillOpacity: crime_color_normalized
+            fillColor: '#af0c0c',
+            fillOpacity: total / 50
         };
-    }
+}
+
+const geojson_layer = L.geoJSON(geojson, {
+    style: polygon_style
 }).addTo(map);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -78,22 +88,10 @@ function onMapClick(e){
     // get point
     // search polygon which had point inside
     const point = turf.point([e.latlng.lng,e.latlng.lat])
-
-    let polygon_data = null
-    
-    for (const feature of geojson_data.features){
-        if(turf.booleanPointInPolygon(point,feature)){
-            polygon_data = feature.properties;
-            break;
-        }
-    }
-    if(!polygon_data){
-        return
-    }
     
     // print info
     const marker = L.marker(e.latlng).addTo(map);
-    marker.bindPopup(`${e.latlng} <br> ${polygon_data.LSOA21NM} <br> population: ${polygon_data.p}<br>crime: ${polygon_data.c}`).openPopup();
+    marker.bindPopup(`eu sou um point :o)`).openPopup();
 
     marker.on('click', () => marker.remove())
 }
