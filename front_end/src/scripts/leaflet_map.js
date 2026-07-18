@@ -1,7 +1,6 @@
 import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
+import L, { polygon } from 'leaflet';
 import * as turf from '@turf/turf';
-import geojson from '../../public/data/geometry.json';
 
 import { get_selected_month } from '../states/month_state';
 
@@ -11,6 +10,9 @@ import { get_selected_month } from '../states/month_state';
 // setting map area
 const tilemap_openstreet = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 const tilemap_esri       = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+
+const geo_response = await fetch("/data/geometry.json");
+const geojson = await geo_response.json();
 
 // creating leaflet map
 const map = L.map('map',
@@ -26,6 +28,13 @@ const map = L.map('map',
     }
 ).setView([53.5,-2.0],7);
 
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+    iconUrl: "/images/marker-icon.png",
+    iconRetinaUrl: "/images/marker-icon-2x.png",
+    shadowUrl: "/images/marker-shadow.png",
+});
+
 L.tileLayer(tilemap_esri).addTo(map);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~    
@@ -35,9 +44,9 @@ L.tileLayer(tilemap_esri).addTo(map);
 let current_month = get_selected_month();
 async function load_current_month(){
     
-    const response = await fetch(`/data/crime/${current_month}.json`);
+    const crime_response = await fetch(`/data/crime/${current_month}.json`);
 
-    return await response.json();
+    return await crime_response.json();
 }
 function get_country_total_crime(){
 
@@ -84,8 +93,8 @@ function polygon_style(feature){
         return {            
             color: '#000000',
             weight: 0.3,
-            fillColor: '#af0c0c',
-            fillOpacity: total / 50
+            fillColor: total == 0 ? '#1ce40a':'#e40a0a',
+            fillOpacity: total == 0 ? 0.5 : (total**2) / 1000
         };
 }
 
@@ -139,7 +148,9 @@ function onMapClick(e){
         
         <hr>
 
-        <strong>Local total:</strong> ${local_total_crime}<br>
+        <strong>This month</strong><br>
+        <strong>Local crime total:</strong> ${local_total_crime}<br>
+        <strong>Local crime per 1 person:</strong> ${(local_total_crime/polygon_population).toFixed(2)}<br>
         <strong>Country total:</strong> ${local_total_crime}/${country_total_crime}
         `).openPopup();
 
