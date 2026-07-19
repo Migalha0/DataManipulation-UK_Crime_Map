@@ -101,6 +101,11 @@ function polygon_style(feature){
 const geojson_layer = L.geoJSON(geojson, {
     style: polygon_style
 }).addTo(map);
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//             DEMOGRAPHY   
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+const demography_response = await fetch('/data/LSOA_2021_demography.json');
+const demography = await demography_response.json();
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //             ONCLICK
@@ -111,12 +116,27 @@ function onMapClick(e){
     // search polygon which had point inside
     const point = turf.point([e.latlng.lng,e.latlng.lat])
     let selected_polygon = undefined
-    let polygon_population = undefined
+    let polygon_population = ""
+    let total_population = undefined
 
     for(const polygon of geojson.features){
         if(turf.booleanPointInPolygon(point,polygon)){
             selected_polygon = polygon.lsoa
-            polygon_population = polygon.population
+            total_population = demography[polygon.lsoa].total_population
+            
+            for (const [race, count] of Object.entries(demography[polygon.lsoa])) {
+
+                if(race === "total_population"){
+                    continue
+                }
+
+                polygon_population += `
+                    <tr>
+                        <th>${race}</th>
+                        <td>${count}</td>
+                    </tr>
+                `;
+            }
         }
     }
 
@@ -138,18 +158,19 @@ function onMapClick(e){
 
     marker.bindPopup(`
         <strong>LSOA:</strong> ${selected_polygon} <br>
-        <strong>Population:</strong> ${polygon_population}
+        <strong>Total Population:</strong> <table class='crime-table'>${total_population}</table>
+        <strong>Population:</strong> <table class='crime-table'>${polygon_population}</table>
 
         <hr>
         
         <table class='crime-table'>
-        ${local_crime_text}
+        ${local_total_crime==0? 'NO CRIME' :local_total_crime}
         </table>
         
         <hr>
 
         <strong>This month</strong><br>
-        <strong>Local crime total:</strong> ${local_total_crime}<br>
+        <strong>Local crime total:</strong> ${local_total_crime==0? 'NO CRIME' :local_total_crime}<br>
         <strong>Local crime per 1 person:</strong> ${(local_total_crime/polygon_population).toFixed(2)}<br>
         <strong>Country total:</strong> ${local_total_crime}/${country_total_crime}
         `).openPopup();
