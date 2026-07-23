@@ -9,6 +9,7 @@ import geometry   from '../data_raw/LSOA_2021_geometry.json'   with {type: 'json
 for(const feature of geometry.features){
 
     feature.lsoa = feature.properties.LSOA21CD
+    feature.lsoaNM = feature.properties.LSOA21NM
 
     delete feature.properties
 }

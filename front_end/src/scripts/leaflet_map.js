@@ -96,12 +96,40 @@ document.addEventListener('monthChange', async () => {
 // 🟢 POLYGON STYLING
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+const no_data_lsoaNM = [
+    // manchester
+    'Oldham',
+    'Rochdale',
+    'Bury',
+    'Bolton',
+    'Salford',
+    'Wigan',
+    'Trafford',
+    'Tameside',
+    'Stockport',
+    'Manchester',
+
+    // southwest
+    'Caerphilly',
+    'Forest of Dean',
+    'Cotswold',
+    'Tewkesbury',
+    'Monmouthshire',
+    'Cheltenham',
+    'Newport',
+    'Stroud',
+    'Torfaen',
+    'Blaenau Gwent',
+    'Gloucester'
+]
+
 /**
  * Style each LSOA polygon based on the current month's crime data.
  */
 function polygon_style(feature) {
 
     const lsoa = feature.lsoa;
+    const lsoaNM = feature.lsoaNM
     const crimes = crime_data.lsoa[lsoa] ?? {};
 
     let total = 0;
@@ -117,10 +145,14 @@ function polygon_style(feature) {
     }
 
     return {
-        color: '#ffffff',
-        weight: 0.4,
-        fillColor: total === 0 ? '#1ce40a' : '#e40a0a',
-        fillOpacity: total === 0 ? 0.5 : (total ** 1.5) / maxCrime
+        color: '#000000',
+        weight: 0.3,
+        fillColor: no_data_lsoaNM.some(name => lsoaNM.includes(name))
+        ? '#b4b4b4'
+        : (total === 0 ? '#1ce40a' : '#e40a0a'),
+        fillOpacity: no_data_lsoaNM.some(name => lsoaNM.includes(name))
+        ? 0.7 
+        : (total === 0 ? 1.0 : (total ** 1.5) / maxCrime)
     };
 }
 
@@ -150,8 +182,9 @@ function onMapClick(e) {
     const point = turf.point([e.latlng.lng, e.latlng.lat]);
 
     let lsoa = undefined;
-    let popTable = '';
+    let lsoaNM = undefined;
 
+    let popTable = '';
     let population = undefined;
 
     // Find which polygon contains the clicked point
@@ -160,6 +193,7 @@ function onMapClick(e) {
         if (turf.booleanPointInPolygon(point, polygon)) {
 
             lsoa = polygon.lsoa;
+            lsoaNM = polygon.lsoaNM;
             population = demography[polygon.lsoa].total_population;
 
             // Build the demographic table for the selected LSOA
@@ -215,7 +249,7 @@ function onMapClick(e) {
 
     // Populate the marker popup with demographic and crime information
     marker.bindPopup(`
-        <strong>LSOA:</strong> ${lsoa}<br>
+        <strong>LSOA:</strong> ${lsoa} ${lsoaNM}<br>
 
         <strong>Local population:</strong> ${population}<br>
         <table class="table">
