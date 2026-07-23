@@ -13,13 +13,23 @@
   color:white;
 }
 
-.crime-table{
+.table{
   border-collapse: collapse;
 }
-.crime-table th,
-.crime-table td{
+.table th,
+.table td{
   border: 1px solid #3a3333;
   padding: 4px 8px
+}
+
+.border-highlight {
+  display: flex;
+  border: 1px solid #3a3333;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  padding-left: 4px;
+  padding-right: 4px;
+  width: fit-content;
 }
 
 body {
